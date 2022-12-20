@@ -9,10 +9,10 @@ import { Reservation } from './entities/reservation.entity';
 @Injectable()
 export class ReservationService {
   constructor(
-    @InjectRepository(Reservation)
+    @InjectRepository(Reservation) // Reservation 테이블 사용을 위한 의존성 주입
     private reservationRepository: Repository<Reservation>,
 
-    @InjectRepository(User)
+    @InjectRepository(User) // User 테이블 사용을 위한 의존성 주입
     private userRepository: Repository<User>,
   ) {
     this.reservationRepository = reservationRepository;
@@ -20,10 +20,12 @@ export class ReservationService {
   }
 
   async createReservation(
+    // 면회 예약 처리 함수
     createReservationDto: CreateReservationDto,
     userId: number,
   ) {
     const user = await this.userRepository.findOne({
+      // 면회를 신청한 사용자에 대한 추가 정보를 찾는다.
       where: {
         id: userId,
       },
@@ -33,6 +35,7 @@ export class ReservationService {
       },
     });
 
+    // 사용자가 요청한 날짜, 시간에 이미 예약이 차있는지 확인한다.
     const isExist = await this.reservationRepository
       .createQueryBuilder('reservation')
       .where('reservation.hospitalId = :hospitalId', {
@@ -49,6 +52,7 @@ export class ReservationService {
       .execute();
 
     if (isExist.length > 0) {
+      // 예약이 차있을 경우 요청받은 면회를 저장하지 않는다.
       throw new ForbiddenException({
         statusCode: HttpStatus.FORBIDDEN,
         message: ['Already the others have reservation'],
@@ -56,6 +60,7 @@ export class ReservationService {
       });
     }
 
+    // 요청받은 날짜에 이미 신청한 면회가 있는지 확인한다.
     const overlapReservation = await this.reservationRepository
       .createQueryBuilder('reservation')
       .where('reservation.hospitalId = :hospitalId', {
@@ -68,6 +73,7 @@ export class ReservationService {
       .andWhere('reservation.userId =:userId', { userId })
       .execute();
 
+    // 이미 신청한 면회가 있는 경우 요청받은 면회를 저장하지 않는다.
     if (overlapReservation.length > 0) {
       throw new ForbiddenException({
         statusCode: HttpStatus.FORBIDDEN,
@@ -76,6 +82,7 @@ export class ReservationService {
       });
     }
 
+    // 면회 예약
     const result = await this.reservationRepository
       .createQueryBuilder()
       .insert()
@@ -93,6 +100,7 @@ export class ReservationService {
     return { id: result.identifiers[0].id };
   }
 
+  // 신청한 면회 리스트에 대한 요청 처리 함수
   async getReservationList(userId: number) {
     const reservations = await this.reservationRepository
       .createQueryBuilder('reservation')
@@ -123,6 +131,7 @@ export class ReservationService {
     return result;
   }
 
+  // 날짜 데이터를 특정 포맷으로 변경해주는 함수
   formatDate(dateTypeData: Date) {
     const temp1 = dateTypeData.toISOString().split('T')[0];
     const temp2 = temp1.split('-');

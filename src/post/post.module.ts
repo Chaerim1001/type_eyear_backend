@@ -9,6 +9,7 @@ import { Keyword } from 'src/keywords/entities/keyword.entity';
 import { NameWord } from 'src/keywords/entities/nameWord.entity';
 import { KeywordsService } from 'src/keywords/keywords.service';
 
+// 영상 우편 관련 처리에서 사용하는 클래스들에 대한 표기
 @Module({
   imports: [TypeOrmModule.forFeature([Post, User, Keyword, NameWord])],
   controllers: [PostController],

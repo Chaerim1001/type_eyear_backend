@@ -24,11 +24,12 @@ import { HospitalListResponse } from './dto/hospital-list-response.dto';
 import { ConnectedPatientResponse } from './dto/connected-patient-response.dto';
 
 @Controller('user')
+// 'user' url로 들어오는 요청에 대한 처리를 담당하는 controller
 @ApiTags('User API')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('')
+  @Post('') // 'user'로 들어온 Post 요청을 처리한다.
   @ApiOperation({
     summary: '유저 생성 API',
     description: '유저를 생성한다.',
@@ -38,7 +39,8 @@ export class UserController {
     description: 'success',
     type: CreateUserResponse,
   })
-  async getUser(@Body() requestDto: CreateUserDto, @Res() res: Response) {
+  async createUser(@Body() requestDto: CreateUserDto, @Res() res: Response) {
+    // 회원가입에 대한 처리
     const user = await this.userService.createUser(requestDto);
     const result = {
       message: 'success',
@@ -47,7 +49,7 @@ export class UserController {
     return res.status(HttpStatus.CREATED).send(result);
   }
 
-  @Get('emailCheck')
+  @Get('emailCheck') // 'user/emailCheck' url로 들어온 Get 요청을 처리한다.
   @ApiOperation({
     summary: '이메일 중복 확인 API',
     description: '이메일 중복 확인 (false: 사용 불가, true: 사용 가능)',
@@ -61,6 +63,7 @@ export class UserController {
     @Query() emailCheckDto: EmailCheckDto,
     @Res() res: Response,
   ) {
+    // 이메일 중복 확인에 대한 처리
     const isValid = await this.userService.emailCheck(emailCheckDto);
     const result = {
       message: 'success',
@@ -69,7 +72,7 @@ export class UserController {
     return res.status(HttpStatus.OK).send(result);
   }
 
-  @Get('posts')
+  @Get('posts') // 'user/posts' url로 들어온 Get 요청을 처리한다.
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: '개인 보낸 우편 리스트 API',
@@ -81,6 +84,7 @@ export class UserController {
     type: PostsResponse,
   })
   async getPosts(@Req() req: Request, @Res() res: Response) {
+    // 사용자가 보낸 영상 우편 리스트에 대한 조회 처리
     const posts = await this.userService.getPosts(req.user.id);
     const result = {
       message: 'success',
@@ -89,7 +93,7 @@ export class UserController {
     return res.status(HttpStatus.OK).send(result);
   }
 
-  @Post('patient')
+  @Post('patient') // 'user/patient' url로 들어온 Post 요청을 처리한다.
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: '수신인 등록 API',
@@ -105,6 +109,7 @@ export class UserController {
     @Res() res: Response,
     @Body() requestDto: ConnectPatientDto,
   ) {
+    // 사용자와 환자를 연결하는 요청에 대한 처리
     const patient = await this.userService.connectPatient(
       req.user.id,
       requestDto,
@@ -116,7 +121,7 @@ export class UserController {
     return res.status(HttpStatus.OK).send(result);
   }
 
-  @Get('hospitals')
+  @Get('hospitals') // 'user/hospitals' url로 들어온 Get 요청을 처리한다.
   @ApiOperation({
     summary: '아이어 등록 병원 리스트 API',
     description: '아이어에 등록된 병원 리스트를 조회하는 API',
@@ -127,6 +132,7 @@ export class UserController {
     type: HospitalListResponse,
   })
   async getHospitalList(@Res() res: Response) {
+    // 아이어에 등록된 병원 리스트 조회에 대한 처리
     const hospitals = await this.userService.getHospitalList();
     const result = {
       message: 'success',
@@ -135,7 +141,7 @@ export class UserController {
     return res.status(HttpStatus.OK).send(result);
   }
 
-  @Get('patient')
+  @Get('patient') // 'user/patient' url로 들어온 Get 요청을 처리한다.
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: '등록된 수신인 확인 API',
@@ -151,6 +157,7 @@ export class UserController {
     description: '등록된 환자가 없는 경우',
   })
   async getPatient(@Req() req: Request, @Res() res: Response) {
+    // 자신과 연결된 환자에 대해 조회 처리
     const data = await this.userService.getPatient(req.user.id);
     if (data) {
       const result = {

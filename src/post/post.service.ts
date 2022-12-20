@@ -18,7 +18,9 @@ import { KeywordsService } from 'src/keywords/keywords.service';
 @Injectable()
 export class PostService {
   constructor(
-    private storage: Storage,
+    private storage: Storage, // 클라우드 storage
+
+    // 사용할 데이터베이스 테이블에 대한 의존성 주입 --> repository 정의
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
     @InjectRepository(User)
@@ -41,6 +43,7 @@ export class PostService {
   }
 
   async sendPost(
+    // 우편 전송을 처리하는 함수
     createpostDto: CreatePostDto,
     video: Express.Multer.File,
     userId: number,
@@ -51,6 +54,7 @@ export class PostService {
     const blob = bucket.file(`${nowDate}.mp4`);
     const blobStream = blob.createWriteStream();
 
+    // 영상 우편을 전송하는 사용자와 연결된 병원과 환자 정보를 찾아온다.
     const user = await this.userRepository.find({
       where: {
         id: userId,
@@ -61,6 +65,7 @@ export class PostService {
       },
     });
 
+    // 사용자 고유 명사에 대한 단어를 찾는다
     const nameWords = await this.nameWordRepository
       .createQueryBuilder('nameWord')
       .select('nameWord.word')
@@ -68,6 +73,7 @@ export class PostService {
       .where('user.id = :userId', { userId })
       .execute();
 
+    // 사용자 영상의 추출 키워드 단어를 찾는다.
     const keywords = await this.keywordRepository
       .createQueryBuilder('keyword')
       .select('keyword.word')
@@ -79,6 +85,7 @@ export class PostService {
       console.error(err);
     });
 
+    // GCP API를 호출한다 --> 앞서서 찾은 keyword를 매개변수롤 사용한다
     blobStream.on('finish', async () => {
       analyzeVideoTranscript(
         `${filename}`,
@@ -89,6 +96,7 @@ export class PostService {
         await this.keywordService.extract(result, userId, user[0].patient.id);
       });
 
+      // GCP API 호출 후 클라우드에 저장한 영상 및 자막 파일에 대한 값을 데이터베이스에 저장한다.
       const result = await this.postRepository
         .createQueryBuilder()
         .insert()
@@ -114,19 +122,22 @@ export class PostService {
   }
 
   async getPostDetail(postId: number, userId: number) {
-    const post = await this.postRepository
+    // 영상 우편 상세 디테일을 처리하는 함수
+    const post = await this.postRepository // 요청을 받은 post가 데이터베이스에 저장되어 있는지 찾는다.
       .createQueryBuilder('post')
       .where('post.id =:postId', { postId })
       .andWhere('post.userId =:userId', { userId })
       .execute();
 
     if (post.length === 0) {
+      // 요청한 post에 정보가 없을 경우 에러를 발생시킨다.
       throw new NotFoundException({
         statusCode: HttpStatus.NOT_FOUND,
         message: ['not existed post'],
         error: 'Not Found',
       });
     } else if (post.length > 1) {
+      // id값이 유효하지 않은 경우 에러를 발생시킨다.
       throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: ['유효하지 않은 우편 및 개인 정보입니다.'],

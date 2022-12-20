@@ -27,12 +27,12 @@ import { PostDetailResponse } from './dto/post-detail-response.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('post')
+// 'post'로 시작하는 url로 요청이 들어오는 경우 처리하는 controller
 @ApiTags('Post API')
-@UseInterceptors(FileInterceptor('video'))
+@UseInterceptors(FileInterceptor('video')) // video file 사용
 export class PostController {
   constructor(private readonly postService: PostService) {}
-  @UseGuards(JwtAuthGuard)
-  @Post('')
+  @Post('') //'post' url로 들어온 POST 요청을 처리한다.
   @ApiOperation({
     summary: '편지 보내기 API',
     description: '편지를 보낸다.',
@@ -49,7 +49,7 @@ export class PostController {
   }
 
   @Get('detail/:postId')
-  @UseGuards(JwtAuthGuard) // fix: 로그인 연결 후 수정
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: '개인 보낸 우편 상세 페이지 확인 API',
     description: '보낸 우편 상세 확인',

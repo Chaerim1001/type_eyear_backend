@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BaseResponse } from 'src/utils/swagger/base-response.dto';
 import { Post } from '../entities/post.entity';
 
+// 우편 디테일 요청에 대한 응답에 사용하는 클래스
 export abstract class PostDetailResponse extends BaseResponse {
   constructor() {
     super();

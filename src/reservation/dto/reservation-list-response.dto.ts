@@ -1,24 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseResponse } from 'src/utils/swagger/base-response.dto';
 
+// 예약된 면회 리스트에 대한 응답 데이터 클래스
 class ReservationData {
   @ApiProperty({ description: '신청된 예약 아이디', example: 1 })
-  reservation_id: number;
+  reservation_id: number; // 신청된 예약 아이디
 
   @ApiProperty({ description: '면회를 신청한 날짜', example: '22/12/12' })
-  reservation_createdAt: string;
+  reservation_createdAt: string; // 면회를 신청한 날짜
 
   @ApiProperty({ description: '면회를 하고자하는 날짜', example: '22/12/12' })
-  reservation_reservationDate: string;
+  reservation_reservationDate: string; // 면회를 하고자 하는 날짜
 
   @ApiProperty({ description: '면회 예약 신청 시간 인덱스', example: 1 })
-  reservation_timetableIndex: number;
+  reservation_timetableIndex: number; // 면회 예약 신청 시간
 
   @ApiProperty({ description: '대면 면회 여부', example: true })
-  reservation_faceToface: boolean;
+  reservation_faceToface: boolean; // 대면 비대면 여부 선택
 
   @ApiProperty({ description: '면회 예약 승인 여부', example: 1 })
-  reservation_approveCheck: number;
+  reservation_approveCheck: number; // 병원에서 해당 면회에 대해 승인을 했는지 거절을 했는지에 대한 여부
 }
 
 class ALlReservationResponseData {

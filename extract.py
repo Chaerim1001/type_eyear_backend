@@ -12,3 +12,5 @@ def extract_keywords(text):
 
 if __name__ == '__main__':
     extract_keywords(sys.argv[1])
+
+# keybert 라이브러리를 사용한 중요 키워드 추출 코드

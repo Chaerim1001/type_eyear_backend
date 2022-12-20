@@ -19,6 +19,7 @@ import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
+  // User 처리를 위해 사용하는 테이블 의존성 주입 및 repository 생성
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -41,11 +42,13 @@ export class UserService {
   }
 
   async createUser(requestDto: CreateUserDto): Promise<any> {
+    // 사용자 회원가입 처리 함수
     const isExist = await this.userRepository.findOneBy({
       email: requestDto.email,
     });
 
     if (isExist) {
+      // 중복되는 이메일이 이미 존재할 경우 에러를 발생한다.
       throw new ForbiddenException({
         statusCode: HttpStatus.FORBIDDEN,
         message: ['Already registered email'],
@@ -53,13 +56,14 @@ export class UserService {
       });
     }
 
-    requestDto.password = await hash(requestDto.password, 10); // FIX ME : use env
+    requestDto.password = await hash(requestDto.password, 10);
 
     const { password, ...result } = await this.userRepository.save(requestDto);
 
     const nameResult = await this.keywordService.addPostposition(result.name);
 
     for (const name of nameResult) {
+      // 회원가입 시 입력된 사용자의 이름을 활용하여 고유 명사 키워드를 생성한다.
       await this.nameWordRepository
         .createQueryBuilder()
         .insert()
@@ -75,6 +79,7 @@ export class UserService {
   }
 
   async emailCheck(emailCheckDto: EmailCheckDto) {
+    // 이메일 중복 확인 처리 함수
     if (!emailCheckDto.email) {
       throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
@@ -97,6 +102,7 @@ export class UserService {
   }
 
   async getPosts(userId: number) {
+    // 사용자가 보낸 영상 우편 리스트 조회 함수
     const posts = await this.postRepository
       .createQueryBuilder('post')
       .select('post.id')
@@ -114,7 +120,9 @@ export class UserService {
   }
 
   async connectPatient(userId: number, requestDto: ConnectPatientDto) {
+    // 사용자와 환자를 연결하는 함수
     const { hospital_id, patient_infoNumber, patient_name } = requestDto;
+    // 요청 데이터에 맞는 해당 환자를 찾는다.
     const patient = await this.patientRepository
       .createQueryBuilder('patient')
       .select('patient.id')
@@ -131,6 +139,7 @@ export class UserService {
       .execute();
 
     if (patient.length != 1) {
+      // 요청 정보를 통해 조회되는 환자가 없거나 많을 경우 에러를 발생시킨다.
       throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: ['수신인 정보를 다시 확인해주세요.'],
@@ -146,6 +155,7 @@ export class UserService {
       .execute();
 
     if (users.length > 0) {
+      // 사용자의 정보를 조회하여 이미 연결이 완료된 환자인지 체크하고 이미 연결이 되어있으면 에러를 발생시킨다.
       throw new BadRequestException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: ['이미 연결이 완료된 환자입니다.'],
@@ -154,6 +164,7 @@ export class UserService {
     }
 
     try {
+      // 사용자와 환자를 연결한다.
       await this.userRepository.update(
         { id: userId },
         {
@@ -169,6 +180,7 @@ export class UserService {
   }
 
   async getHospitalList() {
+    // 아이어 서비스에 등록된 병원 리스트를 반환한다.
     return await this.hospitalRepository.find({
       select: {
         id: true,
@@ -180,6 +192,7 @@ export class UserService {
   }
 
   async getPatient(userId: number) {
+    // 자신과 연결된 환자의 정보를 반환하는 함수
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: { patient: true, hospital: true },

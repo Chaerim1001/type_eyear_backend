@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseResponse } from 'src/utils/swagger/base-response.dto';
 
+// 환자 연결 응답에 사용하는 데이터 클래스
 class ConnectPatientResponseData {
   @ApiProperty({ description: '환자 아이디', example: 5 })
-  patient_id: number;
+  patient_id: number; // 환자 고유 id
 
   @ApiProperty({ description: '환자 이름', example: '이필재' })
   patient_name: string;
